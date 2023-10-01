@@ -5,6 +5,8 @@ import warnings
 warnings.filterwarnings("ignore")
 from datetime import datetime as dt
 import os 
+script_directory = os.path.dirname(__file__)
+os.chdir(script_directory)
 
 def p_no_sell(grouped):
     grouped.insert(2,"d_q_s", 0)
@@ -149,11 +151,112 @@ def portfoy(ticker):
     df4 = port_func2(ticker,df3)
     return df4
 
-df = pd.read_parquet("midas_df.parquet")
-cum_inv_df = pd.read_parquet("midas_cum_inv_df.parquet")
-tvdata = pd.read_parquet("output.parquet")
+def create_gunluk_ozet(port_all):
+    selected_col = ["date","ticker","h_q","a_p_b",'d_q_c',"open","close","d_%",'a_%', 'd_a_b',"d_a_s", 't_v',"d_r_p", 'a_r_p',"d_ur_p", 'a_ur_p']
+    gunluk_ozet_raw = port_all[selected_col]
 
-print(tvdata.date.min(), tvdata.date.max())
+    # Group by business week
+    gunluk_ozet = gunluk_ozet_raw.groupby(pd.Grouper(key="date",freq='D')).agg({
+        "d_a_b": 'sum',
+        "d_a_s":'sum',
+        "t_v": 'sum',
+        "d_r_p": 'sum',
+        "d_ur_p": 'sum',
+        "a_r_p": 'sum',
+        "a_ur_p": 'sum',
+    }).reset_index()
+    gunluk_ozet = gunluk_ozet[gunluk_ozet["date"].isin(tvdata["date"].unique())]
+    gunluk_ozet["d_a_c"] = - gunluk_ozet["d_a_b"] + gunluk_ozet["d_a_s"]
+    gunluk_ozet["d_a_c"] = gunluk_ozet["d_a_c"].round(2)
+    gunluk_ozet["t_v"] = gunluk_ozet["t_v"].round(2)
+    gunluk_ozet.insert(3,"t_v_y",gunluk_ozet["t_v"].shift(1))
+    gunluk_ozet.loc[0,"t_v_y"] = gunluk_ozet.loc[0,"d_a_b"]
+
+    gunluk_ozet["d_r_p"] = gunluk_ozet["d_r_p"].round(2)
+    gunluk_ozet["d_ur_p"] = gunluk_ozet["d_ur_p"].round(2)
+
+    gunluk_ozet = gunluk_ozet.merge(cum_inv_df, on="date", how="left")
+    gunluk_ozet.rename(columns={"cum_inv": "a_inv"}, inplace=True)
+    gunluk_ozet.insert(9,"d_inv",gunluk_ozet["a_inv"].diff())
+    gunluk_ozet.loc[0,"d_inv"] = gunluk_ozet.loc[0,"a_inv"]
+    gunluk_ozet["d_inv"] = gunluk_ozet["d_inv"].astype(int)
+
+    gunluk_ozet.loc[1:,"t_v_y"] = gunluk_ozet.loc[1:,"t_v_y"] + gunluk_ozet.loc[1:,"d_inv"]
+    gunluk_ozet.insert(4,"d_%",(round(gunluk_ozet["t_v"] / gunluk_ozet["t_v_y"],4) - 1) * 100)
+
+    gunluk_ozet["d_b"] = gunluk_ozet["d_inv"] + (gunluk_ozet["d_a_c"])
+    gunluk_ozet["a_b"] = gunluk_ozet["d_b"].cumsum()
+
+    gunluk_ozet["a_r_p"] = gunluk_ozet["a_r_p"].round(2)
+    gunluk_ozet["a_ur_p"] = gunluk_ozet["a_ur_p"].round(2)
+    gunluk_ozet["d_p"] = gunluk_ozet["d_r_p"] + gunluk_ozet["d_ur_p"]
+    gunluk_ozet["d_p_y"] = round(gunluk_ozet["d_p"] / gunluk_ozet["t_v"],4) * 100
+
+    # gunluk_ozet.to_parquet("gunluk_ozet.parquet")
+    return gunluk_ozet
+
+def create_hisse_gunluk(port_all):
+    selected_col = ["date","ticker","h_q","a_p_b",'d_q_c',"open","close","d_%",'a_%', 'a_a_b', 't_v',"d_r_p", 'a_r_p',"d_ur_p", 'a_ur_p',"d_p","a_p"]
+    hisse_gunluk = port_all[selected_col]
+    # hisse_gunluk.to_parquet("hisse_gunluk.parquet")
+    return hisse_gunluk
+
+def create_haftalık_ozet(port_all):
+    selected_col = ["date","ticker","h_q","a_p_b",'d_q_c',"open","close","d_%",'a_%', 'd_a_b',"d_a_s", 't_v',"d_r_p", 'a_r_p',"d_ur_p", 'a_ur_p',"d_p","a_p"]
+    haftalık_data = port_all[selected_col]
+    def business_week(date):
+        # If the date is a Monday, return the date itself.
+        if date.weekday() == 0:  
+            return date
+        # Otherwise, return the date of the nearest past Monday.
+        else:
+            return date - pd.Timedelta(days=date.weekday())
+
+    # Group by business week
+    haftalık_ozet = haftalık_data.groupby([haftalık_data['date'].apply(business_week)]).agg({
+        "d_a_b": 'sum',
+        "d_a_s":'sum',
+        "t_v": 'sum',
+        "d_r_p": 'sum',
+        "d_ur_p": 'sum',
+        "a_r_p": 'sum',
+        "a_ur_p": 'sum',
+    }).reset_index()
+
+    haftalık_ozet = haftalık_ozet[haftalık_ozet["date"].isin(tvdata["date"].unique())]
+    haftalık_ozet["d_a_c"] = - haftalık_ozet["d_a_b"] + haftalık_ozet["d_a_s"]
+    haftalık_ozet["d_a_c"] = haftalık_ozet["d_a_c"].round(2)
+    haftalık_ozet["t_v"] = haftalık_ozet["t_v"].round(2)
+    haftalık_ozet.insert(3,"t_v_y",haftalık_ozet["t_v"].shift(1))
+    haftalık_ozet.loc[0,"t_v_y"] = haftalık_ozet.loc[0,"d_a_b"]
+
+    haftalık_ozet["d_r_p"] = haftalık_ozet["d_r_p"].round(2)
+    haftalık_ozet["d_ur_p"] = haftalık_ozet["d_ur_p"].round(2)
+
+    haftalık_ozet = haftalık_ozet.merge(cum_inv_df, on="date", how="left")
+    haftalık_ozet.rename(columns={"cum_inv": "a_inv"}, inplace=True)
+    haftalık_ozet.insert(9,"d_inv",haftalık_ozet["a_inv"].diff())
+    haftalık_ozet.loc[0,"d_inv"] = haftalık_ozet.loc[0,"a_inv"]
+    haftalık_ozet["d_inv"] = haftalık_ozet["d_inv"].astype(int)
+
+    haftalık_ozet.loc[1:,"t_v_y"] = haftalık_ozet.loc[1:,"t_v_y"] + haftalık_ozet.loc[1:,"d_inv"]
+    haftalık_ozet.insert(4,"d_%",(round(haftalık_ozet["t_v"] / haftalık_ozet["t_v_y"],4) - 1) * 100)
+
+    haftalık_ozet["d_b"] = haftalık_ozet["d_inv"] + (haftalık_ozet["d_a_c"])
+    haftalık_ozet["a_b"] = haftalık_ozet["d_b"].cumsum()
+
+    haftalık_ozet["a_r_p"] = haftalık_ozet["a_r_p"].round(2)
+    haftalık_ozet["a_ur_p"] = haftalık_ozet["a_ur_p"].round(2)
+    haftalık_ozet["d_p"] = haftalık_ozet["d_r_p"] + haftalık_ozet["d_ur_p"]
+    haftalık_ozet["d_p_y"] = round(haftalık_ozet["d_p"] / haftalık_ozet["t_v"],4) * 100
+
+    # haftalık_ozet.to_parquet("haftalık_ozet.parquet")
+    return haftalık_ozet
+
+df = pd.read_parquet("../data/midas_raw/midas_df.parquet")
+cum_inv_df = pd.read_parquet("../data/midas_raw/midas_cum_inv_df.parquet")
+tvdata = pd.read_parquet("../data/parquet/tvdata23.parquet")
+
 port_all = pd.DataFrame()
 for ticker in df.ticker.unique():
     try:
@@ -161,6 +264,7 @@ for ticker in df.ticker.unique():
         port_all = pd.concat([port_all, port_temp], axis=0, ignore_index=True)
     except Exception as e:
         print(ticker, e)
+
 port_all = port_all.query("ticker != 'ALTIN.S1'")
 port_all.reset_index(drop=True, inplace=True)
 
@@ -170,102 +274,15 @@ condition_adgyo = ((port_all['ticker'] == 'ADGYO') & (port_all['date'] >= '2023-
 
 # Combine the conditions and filter the DataFrame
 port_all = port_all[condition_ofsym & condition_adgyo]
-port_all.to_parquet("port_all.parquet")
+port_all.to_parquet("../data/parquet/port_all.parquet")
 
-selected_col = ["date","ticker","h_q","a_p_b",'d_q_c',"open","close","d_%",'a_%', 'a_a_b', 't_v',"d_r_p", 'a_r_p',"d_ur_p", 'a_ur_p',"d_p","a_p"]
-hisse_gunluk = port_all[selected_col]
-hisse_gunluk.to_parquet("hisse_gunluk.parquet")
+gunluk_ozet = create_gunluk_ozet(port_all)
+hisse_gunluk = create_hisse_gunluk(port_all)
+haftalık_ozet = create_haftalık_ozet(port_all)
 
-selected_col = ["date","ticker","h_q","a_p_b",'d_q_c',"open","close","d_%",'a_%', 'd_a_b',"d_a_s", 't_v',"d_r_p", 'a_r_p',"d_ur_p", 'a_ur_p']
-gunluk_ozet_raw = port_all[selected_col]
-
-# Group by business week
-gunluk_ozet = gunluk_ozet_raw.groupby(pd.Grouper(key="date",freq='D')).agg({
-    "d_a_b": 'sum',
-    "d_a_s":'sum',
-    "t_v": 'sum',
-    "d_r_p": 'sum',
-    "d_ur_p": 'sum',
-    "a_r_p": 'sum',
-    "a_ur_p": 'sum',
-}).reset_index()
-gunluk_ozet = gunluk_ozet[gunluk_ozet["date"].isin(tvdata["date"].unique())]
-gunluk_ozet["d_a_c"] = - gunluk_ozet["d_a_b"] + gunluk_ozet["d_a_s"]
-gunluk_ozet["d_a_c"] = gunluk_ozet["d_a_c"].round(2)
-gunluk_ozet["t_v"] = gunluk_ozet["t_v"].round(2)
-gunluk_ozet.insert(3,"t_v_y",gunluk_ozet["t_v"].shift(1))
-gunluk_ozet.loc[0,"t_v_y"] = gunluk_ozet.loc[0,"d_a_b"]
-
-gunluk_ozet["d_r_p"] = gunluk_ozet["d_r_p"].round(2)
-gunluk_ozet["d_ur_p"] = gunluk_ozet["d_ur_p"].round(2)
-
-gunluk_ozet = gunluk_ozet.merge(cum_inv_df, on="date", how="left")
-gunluk_ozet.rename(columns={"cum_inv": "a_inv"}, inplace=True)
-gunluk_ozet.insert(9,"d_inv",gunluk_ozet["a_inv"].diff())
-gunluk_ozet.loc[0,"d_inv"] = gunluk_ozet.loc[0,"a_inv"]
-gunluk_ozet["d_inv"] = gunluk_ozet["d_inv"].astype(int)
-
-gunluk_ozet.loc[1:,"t_v_y"] = gunluk_ozet.loc[1:,"t_v_y"] + gunluk_ozet.loc[1:,"d_inv"]
-gunluk_ozet.insert(4,"d_%",(round(gunluk_ozet["t_v"] / gunluk_ozet["t_v_y"],4) - 1) * 100)
-
-gunluk_ozet["d_b"] = gunluk_ozet["d_inv"] + (gunluk_ozet["d_a_c"])
-gunluk_ozet["a_b"] = gunluk_ozet["d_b"].cumsum()
-
-gunluk_ozet["a_r_p"] = gunluk_ozet["a_r_p"].round(2)
-gunluk_ozet["a_ur_p"] = gunluk_ozet["a_ur_p"].round(2)
-gunluk_ozet["d_p"] = gunluk_ozet["d_r_p"] + gunluk_ozet["d_ur_p"]
-gunluk_ozet["d_p_y"] = round(gunluk_ozet["d_p"] / gunluk_ozet["t_v"],4) * 100
-
-gunluk_ozet.to_parquet("gunluk_ozet.parquet")
+gunluk_ozet.to_parquet("../data/parquet/gunluk_ozet.parquet")
+hisse_gunluk.to_parquet("../data/parquet/hisse_gunluk.parquet")
+haftalık_ozet.to_parquet("../data/parquet/haftalık_ozet.parquet")
 
 
-selected_col = ["date","ticker","h_q","a_p_b",'d_q_c',"open","close","d_%",'a_%', 'd_a_b',"d_a_s", 't_v',"d_r_p", 'a_r_p',"d_ur_p", 'a_ur_p',"d_p","a_p"]
-haftalık_data = port_all[selected_col]
-def business_week(date):
-    # If the date is a Monday, return the date itself.
-    if date.weekday() == 0:  
-        return date
-    # Otherwise, return the date of the nearest past Monday.
-    else:
-        return date - pd.Timedelta(days=date.weekday())
 
-# Group by business week
-haftalık_ozet = haftalık_data.groupby([haftalık_data['date'].apply(business_week)]).agg({
-    "d_a_b": 'sum',
-    "d_a_s":'sum',
-    "t_v": 'sum',
-    "d_r_p": 'sum',
-    "d_ur_p": 'sum',
-    "a_r_p": 'sum',
-    "a_ur_p": 'sum',
-}).reset_index()
-
-haftalık_ozet = haftalık_ozet[haftalık_ozet["date"].isin(tvdata["date"].unique())]
-haftalık_ozet["d_a_c"] = - haftalık_ozet["d_a_b"] + haftalık_ozet["d_a_s"]
-haftalık_ozet["d_a_c"] = haftalık_ozet["d_a_c"].round(2)
-haftalık_ozet["t_v"] = haftalık_ozet["t_v"].round(2)
-haftalık_ozet.insert(3,"t_v_y",haftalık_ozet["t_v"].shift(1))
-haftalık_ozet.loc[0,"t_v_y"] = haftalık_ozet.loc[0,"d_a_b"]
-
-haftalık_ozet["d_r_p"] = haftalık_ozet["d_r_p"].round(2)
-haftalık_ozet["d_ur_p"] = haftalık_ozet["d_ur_p"].round(2)
-
-haftalık_ozet = haftalık_ozet.merge(cum_inv_df, on="date", how="left")
-haftalık_ozet.rename(columns={"cum_inv": "a_inv"}, inplace=True)
-haftalık_ozet.insert(9,"d_inv",haftalık_ozet["a_inv"].diff())
-haftalık_ozet.loc[0,"d_inv"] = haftalık_ozet.loc[0,"a_inv"]
-haftalık_ozet["d_inv"] = haftalık_ozet["d_inv"].astype(int)
-
-haftalık_ozet.loc[1:,"t_v_y"] = haftalık_ozet.loc[1:,"t_v_y"] + haftalık_ozet.loc[1:,"d_inv"]
-haftalık_ozet.insert(4,"d_%",(round(haftalık_ozet["t_v"] / haftalık_ozet["t_v_y"],4) - 1) * 100)
-
-haftalık_ozet["d_b"] = haftalık_ozet["d_inv"] + (haftalık_ozet["d_a_c"])
-haftalık_ozet["a_b"] = haftalık_ozet["d_b"].cumsum()
-
-haftalık_ozet["a_r_p"] = haftalık_ozet["a_r_p"].round(2)
-haftalık_ozet["a_ur_p"] = haftalık_ozet["a_ur_p"].round(2)
-haftalık_ozet["d_p"] = haftalık_ozet["d_r_p"] + haftalık_ozet["d_ur_p"]
-haftalık_ozet["d_p_y"] = round(haftalık_ozet["d_p"] / haftalık_ozet["t_v"],4) * 100
-
-# haftalık_ozet
-haftalık_ozet.to_parquet("haftalık_ozet.parquet")
