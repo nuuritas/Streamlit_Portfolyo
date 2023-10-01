@@ -1,12 +1,15 @@
 from tvDatafeed import TvDatafeed, Interval
 tv = TvDatafeed()
 import pandas as pd
-import warnings; warnings.simplefilter('ignore')
+import warnings; warnings.simplefilter('ignore');
 import numpy as np
 import json
 import requests
 import concurrent.futures
 from tqdm import tqdm
+import os 
+script_directory = os.path.dirname(__file__)
+os.chdir(script_directory)
 
 def convert_sector_wide(data, sector_name):
     rename_dict = {
@@ -111,10 +114,14 @@ def get_sector_multiple(sector_names):
     return ozet_df, sirket_df
 
 def fetch_data(ticker):
-    data = tv.get_hist(symbol=ticker, exchange='BIST', interval=Interval.in_daily, n_bars=200)
-    return data
+    try:
+        data = tv.get_hist(symbol=ticker, exchange='BIST', interval=Interval.in_daily, n_bars=200)
+        return data
+    except Exception as e:
+        print("Error: ", e)
+        return pd.DataFrame()
 
-sector_names = json.load(open('sector_names.json',encoding="utf-8"))
+sector_names = json.load(open('../data/json/sector_names.json',encoding="utf-8"))
 print("Fintables Sektörler ve Şirketler Güncelleniyor")
 ozet_df, sirket_df = get_sector_multiple(sector_names)
 print("Fintables Sektörler ve Şirketler Güncellendi")
@@ -133,6 +140,6 @@ data["symbol"] = data["symbol"].str[5:]
 data["date"] = data["datetime"].apply(lambda x: x.normalize())
 data.drop(columns=['datetime'], inplace=True)
 data.rename(columns={'symbol': 'ticker'}, inplace=True)
-data.to_parquet("output.parquet")
+data.to_parquet("../data/parquet/tvdata23.parquet")
 
 print("TradingView Verileri Güncellendi")
