@@ -143,3 +143,4 @@ data.rename(columns={'symbol': 'ticker'}, inplace=True)
 data.to_parquet("../data/parquet/tvdata23.parquet")
 
 print("TradingView Verileri Güncellendi")
+print(data.ticker.nunique(), "Şirket Güncellendi")
