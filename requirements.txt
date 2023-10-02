@@ -6,5 +6,5 @@ requests
 tqdm
 streamlit
 streamlit_echarts
-git+https://github.com/dewkul/tvdatafeed.git#egg=tvDatafeed
 tika
+git+https://github.com/dewkul/tvdatafeed.git#egg=tvDatafeed
