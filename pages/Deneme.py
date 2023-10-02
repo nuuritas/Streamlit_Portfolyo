@@ -41,6 +41,7 @@ def generate_sparkline(values, color="white"):
     </svg>
     """
 
+
 values = [10, 12, 8, 13, 7, 10, 11, 14, 12, 15]
 values2 = [20, 12, 8, 13, 7, 10, 11, 14, 12, 15]
 sparkline_aapl = generate_sparkline(values)
@@ -59,7 +60,7 @@ def stock_html(stock_code, sparkline_svg, holding_value, daily_gain, gain_color)
         <div style='flex: 1;'>{sparkline_svg}</div>
         <div style='flex: 1; text-align: right;'>
             <span style='font-size: {fontsize}px; display: block;'>{holding_value}</span>
-            <span style='font-size: 14px; color: {gain_color}; display: block;'>{daily_gain}</span>
+            <span style='font-size: 20px; color: {gain_color}; display: block;'>{daily_gain}</span>
         </div>
     </div>
     """
@@ -72,30 +73,36 @@ tesla_html = stock_html("TESLA", sparkline_tesla, "$1400", "-$20", "red")
 
 # Main Holdings Info Box
 def main_holdings_html(
-    total_value, days_gain, total_gain, days_gain_color, total_gain_color
+    total_value,
+    days_gain,
+    days_gain_perc,
+    total_gain,
+    total_gain_perc,
+    days_gain_color,
+    total_gain_color,
 ):
     current_date = datetime.now().strftime("%B %d, %Y")
     return f"""
     <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap" rel="stylesheet">
     <div style='background-color: transparent; color: white; border-radius: 7px; padding: 12px; line-height: 25px; border: 1px solid white; margin-bottom: 12px;font-family: "Rubik Mono One", cursive;'>
-        <span style='font-size: 22px; display: block;'>Holdings</span>
-        <span style='font-size: 28px; display: block;'>${total_value}</span>
+        <span style='font-size: 22px; display: block;'>BAKİYE</span>
+        <span style='font-size: 28px; display: block;'>₺{total_value}</span>
         <br>
         <div style='display: flex; justify-content: space-between;'>
-            <span style='font-size: 16px; display: block;'>Days gain:</span>
-            <span style='font-size: 16px; color: {days_gain_color}; display: block;'>${days_gain}</span>
+            <span style='font-size: 16px; display: block;'>Günlük Kazanç:</span>
+            <span style='font-size: 20px; color: {days_gain_color}; display: block;'>${days_gain}({days_gain_perc})</span>
         </div>
         <div style='display: flex; justify-content: space-between;'>
-            <span style='font-size: 16px; display: block;'>Total gain:</span>
-            <span style='font-size: 16px; color: {total_gain_color}; display: block;'>${total_gain}</span>
+            <span style='font-size: 16px; display: block;'>Toplam Kazanç:</span>
+            <span style='font-size: 20px; color: {total_gain_color}; display: block;'>${total_gain}({total_gain_perc})</span>
         </div>
-        <span style='font-size: 12px; display: block;'>As of {current_date}</span>
+        <span style='font-size: 12px; display: block; color:lightgrey'>{current_date}</span>
     </div>
     """
 
 
 # HTML for Main Holdings, AAPL, and TESLA
-main_html = main_holdings_html("5000", "75", "-50", "green", "red")
+main_html = main_holdings_html("5000", "75", "2","-50", "-3", "green", "red")
 aapl_html = stock_html("AAPL", sparkline_aapl, "$1500", "+$25", "green")
 tesla_html = stock_html("TESLA", sparkline_tesla, "$1400", "-$20", "red")
 

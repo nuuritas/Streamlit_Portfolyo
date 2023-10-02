@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from streamlit_echarts import st_echarts
+from datetime import datetime, timedelta
 
 # st.set_page_config(layout="wide")
 
@@ -9,7 +10,39 @@ gunluk_ozet = pd.read_parquet("data/parquet/gunluk_ozet.parquet")
 haftalık_ozet = pd.read_parquet("data/parquet/haftalık_ozet.parquet")
 port_all = pd.read_parquet("data/parquet/port_all.parquet")
 
-from datetime import datetime, timedelta
+wch_colour_font = (255, 255, 255)
+fontsize = 24
+lnk = '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">'
+
+
+def main_holdings_html(
+    total_value,
+    days_gain,
+    days_gain_perc,
+    total_gain,
+    total_gain_perc,
+    days_gain_color,
+    total_gain_color,
+):
+    current_date = datetime.now().strftime("%B %d, %Y")
+    return f"""
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap" rel="stylesheet">
+    <div style='background-color: transparent; color: white; border-radius: 7px; padding: 12px; line-height: 25px; border: 1px solid white; margin-bottom: 12px;font-family: "Rubik Mono One", cursive;'>
+        <span style='font-size: 22px; display: block;'>BAKİYE</span>
+        <span style='font-size: 28px; display: block;'>₺{total_value}</span>
+        <br>
+        <div style='display: flex; justify-content: space-between;'>
+            <span style='font-size: 16px; display: block;'>Günlük KZ:</span>
+            <span style='font-size: 18px; color: {days_gain_color}; display: block;'>₺{days_gain}(%{days_gain_perc})</span>
+        </div>
+        <div style='display: flex; justify-content: space-between;'>
+            <span style='font-size: 16px; display: block;'>Toplam KZ:</span>
+            <span style='font-size: 18px; color: {total_gain_color}; display: block;'>₺{total_gain}(%{total_gain_perc})</span>
+        </div>
+        <span style='font-size: 12px; display: block; color:lightgrey'>{current_date}</span>
+    </div>
+    """
+
 
 now = datetime.now()
 if now.weekday() >= 5:  # 5: Saturday, 6: Sunday
@@ -27,11 +60,15 @@ else:
 hisse_gunluk = pd.read_parquet("data/parquet/hisse_gunluk.parquet")
 
 # st.dataframe(gunluk_ozet)
-st.title(f"{datetime.today().strftime('%d-%m-%Y')} Özet")
+# st.title(f"{datetime.today().strftime('%d-%m-%Y')} Özet")
 
 toplam_buyukluk = port_all.query("date == @today").t_v.sum()
+toplam_net = round(gunluk_ozet.query("date == @today")["a_ur_p"].values[0] + gunluk_ozet.query("date == @today")["a_r_p"].values[0])
+toplam_yuzde = round(toplam_net / toplam_buyukluk * 100, 1)
 gunluk_net = gunluk_ozet.query("date == @today").d_p.values[0]
 gunluk_yuzde = gunluk_ozet.query("date == @today").d_p_y.values[0]
+
+st.dataframe(gunluk_ozet)
 
 son_hafta = gunluk_ozet[-7:]
 son_hafta.reset_index(drop=True, inplace=True)
@@ -58,7 +95,19 @@ data_list = [
     for ticker, value in son_gun[["ticker", "t_v"]].values
 ]
 
-st.subheader(f"Portfolyo Büyüklüğü: {int(toplam_buyukluk)}₺")
+# st.subheader(f"Portfolyo Büyüklüğü: {int(toplam_buyukluk)}₺")
+
+main_html = main_holdings_html(
+    total_value=int(toplam_buyukluk),
+    days_gain=int(gunluk_net),
+    days_gain_perc=round(gunluk_yuzde,1),
+    total_gain=toplam_net,
+    total_gain_perc=toplam_yuzde,
+    days_gain_color="green" if gunluk_net >= 0 else "red",
+    total_gain_color="green" if toplam_net >= 0 else "red",
+)
+
+st.markdown(lnk + main_html, unsafe_allow_html=True)
 
 options_pie_main = {
     "tooltip": {"trigger": "item", "formatter": "{c}₺ <br>  (%{d})"},
@@ -127,7 +176,7 @@ import streamlit as st
 
 def generate_metric_html(label, value, delta):
     # Determine color for delta value
-    color, arrow, arrow2 = ("green", "↑", "+") if delta >= 0 else ("red", "↓","-")
+    color, arrow, arrow2 = ("green", "↑", "+") if delta >= 0 else ("red", "↓", "-")
 
     # Create the HTML structure
     html = f"""
