@@ -23,7 +23,7 @@ def main_holdings_html(
     days_gain_color,
     total_gain_color,
 ):
-    current_date = datetime.now().strftime("%B %d, %Y")
+    current_date = datetime.now().strftime("%d-%m-%Y")
     return f"""
     <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap" rel="stylesheet">
     <div style='background-color: transparent; color: white; border-radius: 7px; padding: 12px; line-height: 25px; border: 1px solid white; margin-bottom: 12px;font-family: "Rubik Mono One", cursive;'>
@@ -36,9 +36,9 @@ def main_holdings_html(
         </div>
         <div style='display: flex; justify-content: space-between;'>
             <span style='font-size: 16px; display: block;'>Toplam KZ:</span>
-            <span style='font-size: 18px; color: {total_gain_color}; display: block;'>₺{total_gain}(%{total_gain_perc})</span>
+            <span style='font-size: 16px; color: {total_gain_color}; display: block;'>₺{total_gain}(%{total_gain_perc})</span>
         </div>
-        <span style='font-size: 12px; display: block; color:lightgrey'>{current_date}</span>
+        <span style='font-size: 12px; display: block; color:yellow'>Güncelleme: {current_date}</span>
     </div>
     """
 
@@ -148,26 +148,7 @@ st_echarts(
     height="500px",
 )
 
-# m1, m2, m3 = st.columns((3))
 
-# m1.metric(
-#     label="Günlük(%)",
-#     value=round(gunluk_yuzde, 2),
-#     delta=str(int(gunluk_net)) + "₺",
-#     delta_color="normal",
-# )
-# m2.metric(
-#     label="Haftalık(%)",
-#     value=round(haftalik_yuzde, 2),
-#     delta=str(int(haftalik_net)) + "₺",
-#     delta_color="normal",
-# )
-# m3.metric(
-#     label="Aylık(%)",
-#     value=round(gunluk_yuzde, 2),
-#     delta=str(int(aylik_net)) + "₺",
-#     delta_color="normal",
-# )
 
 
 import streamlit as st
