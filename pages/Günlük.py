@@ -51,7 +51,7 @@ for val in values:
         )  # green for positive
     else:
         formatted_values.append(
-            {"value": val, "itemStyle": {"color": "#FF0A81"}}
+            {"value": val, "itemStyle": {"color": "red"}}
         )  # red for negative
 
 # Updating options
@@ -74,87 +74,29 @@ options_bar_gunluk = {
         },
         "axisLine": {"lineStyle": {"color": "#ffffff"}},
     },
-    "yAxis": {"type": "value", "axisLine": {"lineStyle": {"color": "#ffffff"}}},
+    "yAxis": {"type": "value", "axisLine": {"lineStyle": {"color": "#ffffff"}},
+              "splitLine": {"show": False}},
     "series": [
         {
             "data": formatted_values,
             "name": "Günlük(%)",
-            "type": "bar",
-            "barWidth": "60%",
+            "type": "line",
+            "color": "#42c8b2",
+            "smooth": False,
+            "itemStyle": {"color": "#42c8b2"},
+            "lineStyle": {"color": "#42c8b2", "type": "solid", "width": 3},
+            "order": "before",
         },
         {
             "data": index_values,
             "name": "XU100(%)",
             "type": "line",
-            "smooth": True,
+            "smooth": False,
+            "color": "white",
             "itemStyle": {"color": "white"},
-            "lineStyle": {"color": "white", "opacity": "0.55"},
+            "lineStyle": {"color": "white", "type": "dashed", "width": 1},
+            "order": "before",
         },
-    ],
-    "dataZoom": [
-        {
-            "type": "inside",
-            "start": 0,
-            "end": 100,
-        }
-    ],
-}
-
-
-# Splitting and formatting the values based on sign for both your returns and index returns
-formatted_values = []
-formatted_index_values = []
-
-for your_val, index_val in zip(values, index_values):
-    # For your returns
-    if your_val >= 0:
-        formatted_values.append(
-            {"value": your_val, "itemStyle": {"color": "#2DE1C2"}}  # green for positive
-        )
-    else:
-        formatted_values.append(
-            {"value": your_val, "itemStyle": {"color": "#FF0A81"}}  # red for negative
-        )
-    
-    # For index returns
-    color = "#4DE3B5" if index_val >= 0 else "#FF4A9D"  # slightly different shade of green/red
-    formatted_index_values.append({"value": index_val, "itemStyle": {"color": color}})
-
-# ECharts configuration for stacked bar chart
-options_bar_gunluk_stacked = {
-    "tooltip": {
-        "trigger": "axis",
-        "axisPointer": {"type": "shadow"},
-    },
-    "title": {
-        "text": "Günlük Getiri",
-        "left": "center",
-        "textStyle": {"color": "#ffffff"},
-    },
-    "xAxis": {
-        "type": "category",
-        "data": dates,
-        "axisLabel": {
-            "interval": len(dates) // 6  # This will approximately display 6 dates on the x-axis
-        },
-        "axisLine": {"lineStyle": {"color": "#ffffff"}},
-    },
-    "yAxis": {"type": "value", "axisLine": {"lineStyle": {"color": "#ffffff"}}},
-    "series": [
-        {
-            "data": formatted_values,
-            "name": "Günlük(%)",
-            "type": "bar",
-            "stack": "total",
-            "barWidth": "60%",
-        },
-        {
-            "data": formatted_index_values,
-            "name": "XU100(%)",
-            "type": "bar",
-            "stack": "total",
-            "barWidth": "60%",
-        }
     ],
     "dataZoom": [
         {
@@ -168,7 +110,7 @@ options_bar_gunluk_stacked = {
 
 
 st_echarts(
-    options=options_bar_gunluk_stacked,
+    options=options_bar_gunluk,
     height="400px",
 )
 
@@ -214,4 +156,4 @@ options_portfoy_gunluk = {
     ],
 }
 
-st_echarts(options=options_portfoy_gunluk, height="400px")
+# st_echarts(options=options_portfoy_gunluk, height="400px")
