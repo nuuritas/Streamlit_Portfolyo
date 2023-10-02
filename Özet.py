@@ -63,20 +63,19 @@ st.subheader(f"Portfolyo Büyüklüğü: {int(toplam_buyukluk)}₺")
 
 options_pie_main = {
     "tooltip": {"trigger": "item", 
-    # "formatter": "{a} {b} {c}₺ (%{d})"
+    "formatter": "{b} <br> {c}₺ (%{d})"
     },
     "series": [
         {
             "name": "Hisse",
             "type": "pie",
-            "radius": "40%",
+            "radius": ["30%","50%"],
             "center": ["50%", "40%"],
-            "avoidLabelOverlap": "true",
+            "avoidLabelOverlap": "falses",
             "data": [],
             "label": {
                 "color": "#ffffff",
                 "fontSize": 16,
-                "formatter": "{b} (%{d})",
             },
             "emphasis": {
                 "label": {
@@ -85,11 +84,17 @@ options_pie_main = {
                     "fontSize": 16,
                     "fontColor": "#ffffff"
                 },
+                "itemStyle": {
+                    "shadowBlur": 10,
+                    "shadowOffsetX": 0,
+                    "shadowColor": "rgba(0, 0, 0, 0.5)",
+                },
                 "focus": "data",
             },
         }
     ],
 }
+
 
 # {
 #     "type": "pie",
