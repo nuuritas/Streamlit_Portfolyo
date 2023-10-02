@@ -1,11 +1,4 @@
-try:
-    from tika import parser
-except ImportError:
-    # If the 'tika' module is not found, install it using pip
-    import subprocess
-    subprocess.run(['pip', 'install', '-q', 'tika'])
-    from tika import parser
-
+from PyPDF2 import PdfReader
 import re
 import pandas as pd
 import numpy as np
@@ -13,7 +6,12 @@ import time
 
 def midas_exporter(filename):
     start = time.time()
-    midas1 = parser.from_file(filename)["content"]
+    # midas1 = parser.from_file(filename)["content"]
+
+    pdf = PdfReader(open(filename,'rb'))
+    midas1 = ""
+    for page in pdf.pages:
+        midas1 += page.extract_text()
     yatırım_baslangic = midas1.find("YATIRIM İŞLEMLERİ")
     portfoy_ozet = midas1[:yatırım_baslangic]
     # Corrected regex pattern
