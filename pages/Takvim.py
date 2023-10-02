@@ -3,7 +3,7 @@ import random
 import streamlit as st
 from streamlit_echarts import st_echarts
 
-gunluk_ozet = pd.read_parquet("gunluk_ozet.parquet")
+gunluk_ozet = pd.read_parquet("data/parquet/gunluk_ozet.parquet")
 gunluk_ozet["date"] = gunluk_ozet["date"].dt.strftime("%Y-%m-%d")
 # st.data_editor(gunluk_ozet)
 gunluk_ozet["d_p_y"] = gunluk_ozet["d_p_y"].round(2)

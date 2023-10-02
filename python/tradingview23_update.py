@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import warnings; warnings.simplefilter('ignore')
 import numpy as np
@@ -7,7 +8,7 @@ import concurrent.futures
 from tqdm import tqdm
 from tvDatafeed import TvDatafeed, Interval
 from datetime import datetime, timedelta
-
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 tv = TvDatafeed()
 
@@ -149,11 +150,13 @@ else:
         today_str = now.strftime("%d-%m-%Y")
 
 day_to_fetch = (today - data.date.max()).days
+print(f"Fetching {day_to_fetch} days of data")
 all_tickers = list(sirket_df['sirket_kodu'].unique())
 all_tickers.append('XU100')
 tickers_exist = set(data.ticker.unique()).intersection(all_tickers)
 new_tickers = list(set(all_tickers) - tickers_exist)
-
+print(f"Fetching data for {len(new_tickers)} new tickers")
+print(f"Fetching data for {len(tickers_exist)} existing tickers")
 with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
     # Wrap the executor and the ticker list with tqdm for a progress bar
     data_new_list = list(tqdm(executor.map(fetch_data, new_tickers), total=len(new_tickers)))
@@ -184,3 +187,4 @@ data_update.rename(columns={'symbol': 'ticker'}, inplace=True)
 
 data_all = pd.concat([data,data_new,data_update]).drop_duplicates(subset=["ticker","date"])
 data_all.to_parquet("../data/parquet/tvdata23.parquet")
+print(f"New Data has {data_all.ticker.nunique()} tickers and {data_all.shape[0]} rows")

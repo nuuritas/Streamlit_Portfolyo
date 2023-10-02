@@ -1,2 +1,9 @@
+bs4
+numpy
+pandas
+pyarrow
+requests
+tqdm
+streamlit
 streamlit_echarts
-PyGithub
+git+https://github.com/dewkul/tvdatafeed.git#egg=tvDatafeed

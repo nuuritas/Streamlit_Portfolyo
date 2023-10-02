@@ -2,34 +2,35 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from streamlit_echarts import st_echarts
+
 st.set_page_config(layout="wide")
 
-gunluk_ozet = pd.read_parquet("gunluk_ozet.parquet")
-haftalık_ozet = pd.read_parquet("haftalık_ozet.parquet")
-port_all = pd.read_parquet("port_all.parquet")
+gunluk_ozet = pd.read_parquet("data/parquet/gunluk_ozet.parquet")
+haftalık_ozet = pd.read_parquet("data/parquet/haftalık_ozet.parquet")
+port_all = pd.read_parquet("data/parquet/port_all.parquet")
 
+from datetime import datetime, timedelta
 now = datetime.now()
 if now.weekday() >= 5:  # 5: Saturday, 6: Sunday
-    # If today is Saturday, subtract 1 day to get Friday's data
-    # If today is Sunday, subtract 2 days to get Friday's data
     days_to_subtract = now.weekday() - 4
+    today = now.date() - timedelta(days=days_to_subtract)
     today_str = (now - timedelta(days=days_to_subtract)).strftime("%d-%m-%Y")
 else:
-    # For weekdays, if the current time is before 18:00, use yesterday's date
     if now.hour < 18:
+        today = now.date() - timedelta(days=1)
         today_str = (now - timedelta(days=1)).strftime("%d-%m-%Y")
     else:
-        # If the current time is 18:00 or later, use today's date
+        today = now.date()
         today_str = now.strftime("%d-%m-%Y")
 
-hisse_gunluk = pd.read_parquet("hisse_gunluk.parquet")
+hisse_gunluk = pd.read_parquet("data/parquet/hisse_gunluk.parquet")
 
 # st.dataframe(gunluk_ozet)
 st.title(f"{datetime.today().strftime('%d-%m-%Y')} Özet")
 
-toplam_buyukluk = port_all.query("date == @today_str").t_v.sum()
-gunluk_net = gunluk_ozet.query("date == @today_str").d_p.values[0]
-gunluk_yuzde = gunluk_ozet.query("date == @today_str").d_p_y.values[0]
+toplam_buyukluk = port_all.query("date == @today").t_v.sum()
+gunluk_net = gunluk_ozet.query("date == @today").d_p.values[0]
+gunluk_yuzde = gunluk_ozet.query("date == @today").d_p_y.values[0]
 
 son_hafta = gunluk_ozet[-7:]
 son_hafta.reset_index(drop=True, inplace=True)
@@ -49,7 +50,7 @@ aylik_yuzde = round(
     2,
 )
 
-son_gun = hisse_gunluk[hisse_gunluk["date"] == today_str].sort_values(
+son_gun = hisse_gunluk.query("date == @today").sort_values(
     by="t_v", ascending=True
 )
 son_gun.dropna(how="any", inplace=True)

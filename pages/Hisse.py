@@ -1,18 +1,30 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from streamlit_echarts import st_echarts
 
 st.set_page_config(layout="wide")
 
-gunluk_ozet = pd.read_parquet("gunluk_ozet.parquet")
-haftalık_ozet = pd.read_parquet("haftalık_ozet.parquet")
-port_all = pd.read_parquet("port_all.parquet")
-if datetime.today().hour < 18:
-    today_str = (datetime.today() - pd.Timedelta(days=1)).strftime("%d-%m-%Y")
+gunluk_ozet = pd.read_parquet("data/parquet/gunluk_ozet.parquet")
+haftalık_ozet = pd.read_parquet("data/parquet/haftalık_ozet.parquet")
+port_all = pd.read_parquet("data/parquet/port_all.parquet")
+hisse_gunluk = pd.read_parquet("data/parquet/hisse_gunluk.parquet")
+
+from datetime import datetime, timedelta
+now = datetime.now()
+if now.weekday() >= 5:  # 5: Saturday, 6: Sunday
+    days_to_subtract = now.weekday() - 4
+    today = now.date() - timedelta(days=days_to_subtract)
+    today_str = (now - timedelta(days=days_to_subtract)).strftime("%d-%m-%Y")
 else:
-    today_str = (datetime.today()).strftime("%d-%m-%Y")
-hisse_gunluk = pd.read_parquet("hisse_gunluk.parquet")
+    if now.hour < 18:
+        today = now.date() - timedelta(days=1)
+        today_str = (now - timedelta(days=1)).strftime("%d-%m-%Y")
+    else:
+        today = now.date()
+        today_str = now.strftime("%d-%m-%Y")
+        
+tvdata = pd.read_parquet("data/parquet/tvdata23.parquet")
 
 st.title("Hisse Analizi")
 st.header("Tek Hisse ile Alış-Satış & Kar ve Maliyet Analizi")
