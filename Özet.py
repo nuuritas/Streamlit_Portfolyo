@@ -68,7 +68,7 @@ toplam_yuzde = round(toplam_net / toplam_buyukluk * 100, 1)
 gunluk_net = gunluk_ozet.query("date == @today").d_p.values[0]
 gunluk_yuzde = gunluk_ozet.query("date == @today").d_p_y.values[0]
 
-st.dataframe(gunluk_ozet)
+# st.dataframe(gunluk_ozet)
 
 son_hafta = gunluk_ozet[-7:]
 son_hafta.reset_index(drop=True, inplace=True)
