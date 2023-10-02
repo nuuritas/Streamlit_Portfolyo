@@ -55,7 +55,7 @@ son_gun = hisse_gunluk.query("date == @today").sort_values(
 )
 son_gun.dropna(how="any", inplace=True)
 data_list = [
-    {"name": ticker, "value": round(value, 1)}
+    {"name": ticker, "value": round(value)}
     for ticker, value in son_gun[["ticker", "t_v"]].values
 ]
 
@@ -75,7 +75,7 @@ options_pie_main = {
             "data": [],
             "label": {
                 "color": "#ffffff",
-                "fontSize": 16,
+                "fontSize": 14,
             },
             "emphasis": {
                 "label": {
