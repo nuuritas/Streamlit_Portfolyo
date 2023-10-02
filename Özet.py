@@ -69,9 +69,9 @@ options_pie_main = {
         {
             "name": "Hisse",
             "type": "pie",
-            "radius": ["30%","50%"],
-            "center": ["50%", "40%"],
-            "avoidLabelOverlap": "falses",
+            "radius": ["30%","45%"],
+            "center": ["50%", "45%"],
+            "avoidLabelOverlap": "false",
             "data": [],
             "label": {
                 "color": "#ffffff",
@@ -89,7 +89,7 @@ options_pie_main = {
                     "shadowOffsetX": 0,
                     "shadowColor": "rgba(0, 0, 0, 0.5)",
                 },
-                "focus": "data",
+                "focus": "self",
             },
         }
     ],
