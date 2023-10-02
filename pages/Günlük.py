@@ -11,6 +11,7 @@ port_all = pd.read_parquet("data/parquet/port_all.parquet")
 hisse_gunluk = pd.read_parquet("data/parquet/hisse_gunluk.parquet")
 
 from datetime import datetime, timedelta
+
 now = datetime.now()
 if now.weekday() >= 5:  # 5: Saturday, 6: Sunday
     days_to_subtract = now.weekday() - 4
@@ -23,7 +24,7 @@ else:
     else:
         today = now.date()
         today_str = now.strftime("%d-%m-%Y")
-         
+
 tvdata = pd.read_parquet("data/parquet/tvdata23.parquet")
 index = tvdata.query("ticker == 'XU100'").reset_index(drop=True)
 del tvdata
@@ -87,7 +88,7 @@ options_bar_gunluk = {
             "type": "line",
             "smooth": True,
             "itemStyle": {"color": "white"},
-            "lineStyle": {"color": "#F3EBFF"},
+            "lineStyle": {"color": "white", "opacity": "0.55"},
         },
     ],
     "dataZoom": [
@@ -99,8 +100,75 @@ options_bar_gunluk = {
     ],
 }
 
+
+# Splitting and formatting the values based on sign for both your returns and index returns
+formatted_values = []
+formatted_index_values = []
+
+for your_val, index_val in zip(values, index_values):
+    # For your returns
+    if your_val >= 0:
+        formatted_values.append(
+            {"value": your_val, "itemStyle": {"color": "#2DE1C2"}}  # green for positive
+        )
+    else:
+        formatted_values.append(
+            {"value": your_val, "itemStyle": {"color": "#FF0A81"}}  # red for negative
+        )
+    
+    # For index returns
+    color = "#4DE3B5" if index_val >= 0 else "#FF4A9D"  # slightly different shade of green/red
+    formatted_index_values.append({"value": index_val, "itemStyle": {"color": color}})
+
+# ECharts configuration for stacked bar chart
+options_bar_gunluk_stacked = {
+    "tooltip": {
+        "trigger": "axis",
+        "axisPointer": {"type": "shadow"},
+    },
+    "title": {
+        "text": "Günlük Getiri",
+        "left": "center",
+        "textStyle": {"color": "#ffffff"},
+    },
+    "xAxis": {
+        "type": "category",
+        "data": dates,
+        "axisLabel": {
+            "interval": len(dates) // 6  # This will approximately display 6 dates on the x-axis
+        },
+        "axisLine": {"lineStyle": {"color": "#ffffff"}},
+    },
+    "yAxis": {"type": "value", "axisLine": {"lineStyle": {"color": "#ffffff"}}},
+    "series": [
+        {
+            "data": formatted_values,
+            "name": "Günlük(%)",
+            "type": "bar",
+            "stack": "total",
+            "barWidth": "60%",
+        },
+        {
+            "data": formatted_index_values,
+            "name": "XU100(%)",
+            "type": "bar",
+            "stack": "total",
+            "barWidth": "60%",
+        }
+    ],
+    "dataZoom": [
+        {
+            "type": "inside",
+            "start": 0,
+            "end": 100,
+        }
+    ],
+}
+
+
+
 st_echarts(
-    options=options_bar_gunluk,
+    options=options_bar_gunluk_stacked,
     height="400px",
 )
 
