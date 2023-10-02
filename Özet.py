@@ -10,7 +10,6 @@ haftalık_ozet = pd.read_parquet("data/parquet/haftalık_ozet.parquet")
 port_all = pd.read_parquet("data/parquet/port_all.parquet")
 
 from datetime import datetime, timedelta
-
 now = datetime.now()
 if now.weekday() >= 5:  # 5: Saturday, 6: Sunday
     days_to_subtract = now.weekday() - 4
@@ -51,7 +50,9 @@ aylik_yuzde = round(
     2,
 )
 
-son_gun = hisse_gunluk.query("date == @today").sort_values(by="t_v", ascending=True)
+son_gun = hisse_gunluk.query("date == @today").sort_values(
+    by="t_v", ascending=True
+)
 son_gun.dropna(how="any", inplace=True)
 data_list = [
     {"name": ticker, "value": round(value, 1)}
@@ -61,25 +62,28 @@ data_list = [
 st.subheader(f"Portfolyo Büyüklüğü: {int(toplam_buyukluk)}₺")
 
 options_pie_main = {
-    "tooltip": {"formatter": "Hisse: {b} <br/>{c}₺ (%{d})"},
+    "tooltip": {"trigger": "item", 
+    # "formatter": "{a} {b} {c}₺ (%{d})"
+    },
     "series": [
         {
             "name": "Hisse",
             "type": "pie",
             "radius": "40%",
             "center": ["50%", "40%"],
-            "avoidLabelOverlap": "false",
+            "avoidLabelOverlap": "true",
             "data": [],
             "label": {
                 "color": "#ffffff",
                 "fontSize": 16,
+                "formatter": "{b} (%{d})",
             },
             "emphasis": {
                 "label": {
                     "show": "true",
                     "fontWeight": "bold",
                     "fontSize": 16,
-                    "fontColor": "#ffffff",
+                    "fontColor": "#ffffff"
                 },
                 "focus": "data",
             },
@@ -123,3 +127,4 @@ m3.metric(
     delta=str(int(aylik_net)) + "₺",
     delta_color="normal",
 )
+
