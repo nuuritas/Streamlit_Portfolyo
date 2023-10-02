@@ -1,11 +1,9 @@
-from pyparsing import line
 import streamlit as st
 from datetime import datetime
 
 st.set_page_config(layout="centered")
 
 
-# Variables
 wch_colour_font = (255, 255, 255)
 fontsize = 24
 lnk = '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">'
@@ -43,8 +41,6 @@ def generate_sparkline(values, color="white"):
     </svg>
     """
 
-
-# Test
 values = [10, 12, 8, 13, 7, 10, 11, 14, 12, 15]
 values2 = [20, 12, 8, 13, 7, 10, 11, 14, 12, 15]
 sparkline_aapl = generate_sparkline(values)
