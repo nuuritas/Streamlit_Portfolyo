@@ -10,6 +10,7 @@ haftalık_ozet = pd.read_parquet("data/parquet/haftalık_ozet.parquet")
 port_all = pd.read_parquet("data/parquet/port_all.parquet")
 
 from datetime import datetime, timedelta
+
 now = datetime.now()
 if now.weekday() >= 5:  # 5: Saturday, 6: Sunday
     days_to_subtract = now.weekday() - 4
@@ -50,9 +51,7 @@ aylik_yuzde = round(
     2,
 )
 
-son_gun = hisse_gunluk.query("date == @today").sort_values(
-    by="t_v", ascending=True
-)
+son_gun = hisse_gunluk.query("date == @today").sort_values(by="t_v", ascending=True)
 son_gun.dropna(how="any", inplace=True)
 data_list = [
     {"name": ticker, "value": round(value, 1)}
@@ -62,26 +61,15 @@ data_list = [
 st.subheader(f"Portfolyo Büyüklüğü: {int(toplam_buyukluk)}₺")
 
 options_pie_main = {
-    "title": {
-        "text": "Portfolyo",
-        "left": "center",
-        "textStyle": {"color": "#ffffff"},
-    },
-    "tooltip": {"trigger": "item", 
-    "formatter": "{b} <br/>{c}₺ (%{d})"},
+    "tooltip": {"formatter": "Hisse: {b} <br/>{c}₺ (%{d})"},
     "series": [
         {
             "name": "Hisse",
             "type": "pie",
             "radius": "40%",
+            "center": ["50%", "40%"],
             "avoidLabelOverlap": "false",
-            "data": [
-                {"value": 1048, "name": "搜索引擎"},
-                {"value": 735, "name": "直接访问"},
-                {"value": 580, "name": "邮件营销"},
-                {"value": 484, "name": "联盟广告"},
-                {"value": 300, "name": "视频广告"},
-            ],
+            "data": [],
             "label": {
                 "color": "#ffffff",
                 "fontSize": 16,
@@ -91,12 +79,23 @@ options_pie_main = {
                     "show": "true",
                     "fontWeight": "bold",
                     "fontSize": 16,
-                    "fontColor": "#ffffff"
-                }
+                    "fontColor": "#ffffff",
+                },
+                "focus": "data",
             },
         }
     ],
 }
+
+# {
+#     "type": "pie",
+#     "id": "pie",
+#     "radius": "30%",
+#     "center": ["50%", "25%"],
+#     "emphasis": {"focus": "data"},
+#     "label": {"formatter": "{b}: {@2012} ({d}%)"},
+#     "encode": {"itemName": "product", "value": "2012", "tooltip": "2012"},
+# },
 options_pie_main["series"][0]["data"] = data_list
 
 st_echarts(
@@ -124,4 +123,3 @@ m3.metric(
     delta=str(int(aylik_net)) + "₺",
     delta_color="normal",
 )
-
