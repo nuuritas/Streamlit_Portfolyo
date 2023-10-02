@@ -77,13 +77,13 @@ def stock_html(stock_code, ticker_price,sparkline_svg, holding_value, daily_gain
                 color: rgb({wch_colour_font[0]}, {wch_colour_font[1]}, {wch_colour_font[2]}); 
                 border-radius: 20px; padding: 12px; line-height: 25px; border: 1px solid white;'>
         <div style='flex: 1; text-align: left;'> 
-            <span style='font-size: {fontsize}px; '>{stock_code}</span>
+            <span style='font-size: {fontsize-2}px; '>{stock_code}</span>
             <span style='font-size: 18px; display: block;'>{round(ticker_price,2)}₺</span>
         </div>
         <div style='flex: 1;'>{sparkline_svg}</div>
         <div style='flex: 1; text-align: right;'>
-            <span style='font-size: {fontsize}px; display: block;'>{holding_value}₺</span>
-            <span style='font-size: 18px; color: {gain_color}; display: block;'>₺{daily_gain}(%{daily_gain_perc})</span>
+            <span style='font-size: {fontsize-2}px; display: block;'>{holding_value}₺</span>
+            <span style='font-size: 14px; color: {gain_color}; display: block;'>₺{daily_gain}(%{daily_gain_perc})</span>
         </div>
     </div>
     """
