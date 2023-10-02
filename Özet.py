@@ -3,13 +3,14 @@ import pandas as pd
 from datetime import datetime, timedelta
 from streamlit_echarts import st_echarts
 
-st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 
 gunluk_ozet = pd.read_parquet("data/parquet/gunluk_ozet.parquet")
 haftalık_ozet = pd.read_parquet("data/parquet/haftalık_ozet.parquet")
 port_all = pd.read_parquet("data/parquet/port_all.parquet")
 
 from datetime import datetime, timedelta
+
 now = datetime.now()
 if now.weekday() >= 5:  # 5: Saturday, 6: Sunday
     days_to_subtract = now.weekday() - 4
@@ -50,9 +51,7 @@ aylik_yuzde = round(
     2,
 )
 
-son_gun = hisse_gunluk.query("date == @today").sort_values(
-    by="t_v", ascending=True
-)
+son_gun = hisse_gunluk.query("date == @today").sort_values(by="t_v", ascending=True)
 son_gun.dropna(how="any", inplace=True)
 data_list = [
     {"name": ticker, "value": round(value)}
@@ -62,14 +61,12 @@ data_list = [
 st.subheader(f"Portfolyo Büyüklüğü: {int(toplam_buyukluk)}₺")
 
 options_pie_main = {
-    "tooltip": {"trigger": "item", 
-    "formatter": "{b} <br> {c}₺ (%{d})"
-    },
+    "tooltip": {"trigger": "item", "formatter": "{c}₺ <br>  (%{d})"},
     "series": [
         {
             "name": "Hisse",
             "type": "pie",
-            "radius": ["30%","45%"],
+            "radius": ["30%", "45%"],
             "center": ["50%", "45%"],
             "avoidLabelOverlap": "false",
             "data": [],
@@ -82,7 +79,7 @@ options_pie_main = {
                     "show": "true",
                     "fontWeight": "bold",
                     "fontSize": 16,
-                    "fontColor": "#ffffff"
+                    "fontColor": "#ffffff",
                 },
                 "itemStyle": {
                     "shadowBlur": 10,
@@ -96,15 +93,6 @@ options_pie_main = {
 }
 
 
-# {
-#     "type": "pie",
-#     "id": "pie",
-#     "radius": "30%",
-#     "center": ["50%", "25%"],
-#     "emphasis": {"focus": "data"},
-#     "label": {"formatter": "{b}: {@2012} ({d}%)"},
-#     "encode": {"itemName": "product", "value": "2012", "tooltip": "2012"},
-# },
 options_pie_main["series"][0]["data"] = data_list
 
 st_echarts(
@@ -112,24 +100,91 @@ st_echarts(
     height="500px",
 )
 
-m1, m2, m3 = st.columns((3))
+# m1, m2, m3 = st.columns((3))
 
-m1.metric(
-    label="Günlük(%)",
-    value=round(gunluk_yuzde, 2),
-    delta=str(int(gunluk_net)) + "₺",
-    delta_color="normal",
-)
-m2.metric(
-    label="Haftalık(%)",
-    value=round(haftalik_yuzde, 2),
-    delta=str(int(haftalik_net)) + "₺",
-    delta_color="normal",
-)
-m3.metric(
-    label="Aylık(%)",
-    value=round(gunluk_yuzde, 2),
-    delta=str(int(aylik_net)) + "₺",
-    delta_color="normal",
-)
+# m1.metric(
+#     label="Günlük(%)",
+#     value=round(gunluk_yuzde, 2),
+#     delta=str(int(gunluk_net)) + "₺",
+#     delta_color="normal",
+# )
+# m2.metric(
+#     label="Haftalık(%)",
+#     value=round(haftalik_yuzde, 2),
+#     delta=str(int(haftalik_net)) + "₺",
+#     delta_color="normal",
+# )
+# m3.metric(
+#     label="Aylık(%)",
+#     value=round(gunluk_yuzde, 2),
+#     delta=str(int(aylik_net)) + "₺",
+#     delta_color="normal",
+# )
 
+
+import streamlit as st
+
+
+def generate_metric_html(label, value, delta):
+    # Determine color for delta value
+    color, arrow, arrow2 = ("green", "↑", "+") if delta >= 0 else ("red", "↓","-")
+
+    # Create the HTML structure
+    html = f"""
+    <div class="metric">
+        <div class="label">{label}</div>
+        <div class="value" style="color: {color};">{arrow2} {value}</div>
+        <div class="delta" style="color: {color};">{arrow} {delta}₺</div>
+    </div>
+    """
+    return html
+
+
+def generate_metrics_html(metrics):
+    html_header = """
+    <style>
+        .metrics-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .metric {
+            flex: 1;
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .value {
+            font-size: 24px;
+        }
+        .delta {
+            font-size: 16px;
+        }
+    </style>
+    <div class="metrics-container">
+    """
+
+    html_footer = """
+    </div>
+    """
+
+    metrics_html = [
+        generate_metric_html(label, value, delta) for label, value, delta in metrics
+    ]
+    final_html = html_header + "".join(metrics_html) + html_footer
+
+    return final_html
+
+
+metrics = [
+    ("Günlük(%)", gunluk_yuzde, gunluk_net),
+    ("Haftalık(%)", haftalik_yuzde, haftalik_net),
+    ("Aylık(%)", aylik_yuzde, aylik_net),
+]
+
+st.markdown(generate_metrics_html(metrics), unsafe_allow_html=True)
