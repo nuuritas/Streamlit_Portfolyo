@@ -130,8 +130,6 @@ all_tickers = list(sirket_df['sirket_kodu'].unique())
 all_tickers.append('XU100')
 
 data = pd.read_parquet("../data/parquet/tvdata23.parquet")
-# three_days_ago = datetime.today() - timedelta(days=4)
-# data = data[data['date'] < three_days_ago]
 
 now = datetime.now()
 if now.weekday() >= 5:  # 5: Saturday, 6: Sunday
@@ -158,7 +156,6 @@ new_tickers = list(set(all_tickers) - tickers_exist)
 print(f"Fetching data for {len(new_tickers)} new tickers")
 print(f"Fetching data for {len(tickers_exist)} existing tickers")
 with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-    # Wrap the executor and the ticker list with tqdm for a progress bar
     data_new_list = list(tqdm(executor.map(fetch_data, new_tickers), total=len(new_tickers)))
 
 data_new = pd.concat(data_new_list).reset_index()
