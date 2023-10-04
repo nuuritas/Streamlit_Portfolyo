@@ -154,15 +154,19 @@ all_tickers.append('XU100')
 tickers_exist = set(data.ticker.unique()).intersection(all_tickers)
 new_tickers = list(set(all_tickers) - tickers_exist)
 print(f"Fetching data for {len(new_tickers)} new tickers")
-print(f"Fetching data for {len(tickers_exist)} existing tickers")
+
 with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
     data_new_list = list(tqdm(executor.map(fetch_data, new_tickers), total=len(new_tickers)))
 
-data_new = pd.concat(data_new_list).reset_index()
-data_new["symbol"] = data_new["symbol"].str[5:]
-data_new["date"] = data_new["datetime"].apply(lambda x: x.normalize())
-data_new.drop(columns=['datetime'], inplace=True)
-data_new.rename(columns={'symbol': 'ticker'}, inplace=True)
+try:
+    data_new = pd.concat(data_new_list).reset_index()
+    data_new["symbol"] = data_new["symbol"].str[5:]
+    data_new["date"] = data_new["datetime"].apply(lambda x: x.normalize())
+    data_new.drop(columns=['datetime'], inplace=True)
+    data_new.rename(columns={'symbol': 'ticker'}, inplace=True)
+except Exception as e:
+    print("Error: ", e)
+    data_new = pd.DataFrame()
 
 def fetch_data_update(ticker):
     try:
@@ -172,6 +176,7 @@ def fetch_data_update(ticker):
         print(f"Error for ticker {ticker}: {e}")
         return pd.DataFrame()
 
+print(f"Fetching data for {len(tickers_exist)} existing tickers")
 with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
     # Wrap the executor and the ticker list with tqdm for a progress bar
     data_update_list = list(tqdm(executor.map(fetch_data_update, tickers_exist), total=len(tickers_exist)))
