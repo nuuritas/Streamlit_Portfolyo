@@ -5,4 +5,5 @@ requests
 tqdm
 PyPDF2
 lxml
+pyarrow
 git+https://github.com/dewkul/tvdatafeed.git#egg=tvDatafeed
