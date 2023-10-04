@@ -61,6 +61,7 @@ hisse_gunluk = pd.read_parquet("data/parquet/hisse_gunluk.parquet")
 # st.dataframe(gunluk_ozet)
 # st.title(f"{datetime.today().strftime('%d-%m-%Y')} Özet")
 
+
 toplam_buyukluk = port_all.query("date == @today").t_v.sum()
 toplam_net = round(gunluk_ozet.query("date == @today")["a_ur_p"].values[0] + gunluk_ozet.query("date == @today")["a_r_p"].values[0])
 toplam_yuzde = round(toplam_net / toplam_buyukluk * 100, 1)
