@@ -38,7 +38,7 @@ def main_holdings_html(
             <span style='font-size: 16px; display: block;'>Toplam KZ:</span>
             <span style='font-size: 16px; color: {total_gain_color}; display: block;'>₺{total_gain}(%{total_gain_perc})</span>
         </div>
-        <span style='font-size: 12px; display: block; color:yellow'>Güncelleme: {current_date}</span>
+        <span style='font-size: 12px; display: block; color:yellowq'>Güncelleme: {current_date}</span>
     </div>
     """
 
