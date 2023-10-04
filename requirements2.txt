@@ -4,5 +4,5 @@ pandas
 requests
 tqdm
 PyPDF2
-lxml
 git+https://github.com/dewkul/tvdatafeed.git#egg=tvDatafeed
+lxml
